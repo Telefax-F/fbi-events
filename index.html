@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FBI ET - Event Timeline</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <header>
+    <div class="header-content">
+      <h1>🎭 FBI Entertainment Team</h1>
+      <p class="subtitle">Event Timeline</p>
+    </div>
+    
+    <nav class="filter-nav">
+      <button class="filter-btn active" data-range="month">This Month</button>
+      <button class="filter-btn" data-range="next">Next Month</button>
+      <button class="filter-btn" data-range="all">All Events</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+      <div class="timeline-wrapper" id="timeline">
+        <!-- Timeline bar and event cards rendered here by JS -->
+      </div>
+      
+      <div class="event-details-panel" id="event-details">
+        <div class="empty-state">
+          <p>👆 Click an event card to view details</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Event Parser Section -->
+    <aside class="parser-section">
+      <h2>📝 Add New Event</h2>
+      <p class="helper-text">Paste your Discord announcement below and click Parse to generate JSON</p>
+      
+      <form class="parser-form" id="parser-form">
+        <div class="form-group">
+          <label for="announcement-text">Discord Announcement</label>
+          <textarea 
+            id="announcement-text" 
+            rows="8" 
+            placeholder="Paste Discord announcement text here..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="poster-url">Poster URL (optional)</label>
+            <input 
+              type="url" 
+              id="poster-url" 
+              placeholder="https://...">
+          </div>
+          
+          <div class="form-group">
+            <label for="discord-url">Discord Link (optional)</label>
+            <input 
+              type="url" 
+              id="discord-url" 
+              placeholder="https://discord.com/...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="date-override">Date Override (optional)</label>
+          <input 
+            type="text" 
+            id="date-override" 
+            placeholder="YYYY-MM-DD">
+        </div>
+
+        <button type="submit" class="btn-primary">🔮 Parse Announcement</button>
+      </form>
+
+      <div class="parse-output" id="parse-output">
+        <!-- Parsed event preview and JSON output -->
+      </div>
+    </aside>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
