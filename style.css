@@ -119,24 +119,39 @@ header {
 }
 
 .timeline-wrapper {
-  background: var(--bg-white);
-  border-radius: 12px;
-  border: 2px solid var(--border-color);
-  padding: 4rem 1rem;
   position: relative;
   overflow-x: auto;
   overflow-y: hidden;
-  box-shadow: var(--shadow-sm);
-  max-width: 100%;
+  padding: 2rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-gold) var(--bg-light);
+}
+
+.timeline-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timeline-wrapper::-webkit-scrollbar-track {
+  background: var(--bg-light);
+  border-radius: 4px;
+}
+
+.timeline-wrapper::-webkit-scrollbar-thumb {
+  background: var(--accent-gold);
+  border-radius: 4px;
+}
+
+.timeline-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold-dark);
 }
 
 /* Timeline bar structure */
 .timeline-container {
   position: relative;
   min-height: 180px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
+  min-width: 100%;
 }
 
 .timeline-bar {
@@ -157,7 +172,6 @@ header {
   min-width: max-content;
   position: relative;
   z-index: 2;
-  padding: 0 20px;
 }
 
 .day-slot {
@@ -284,7 +298,7 @@ header {
   padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   border: 2px solid var(--border-color);
-  min-height: 200px;
+  min-height: 150px;
 }
 
 .empty-state {
