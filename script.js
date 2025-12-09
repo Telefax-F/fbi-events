@@ -5,6 +5,7 @@
 
 let allEvents = [];
 let currentFilter = 'month';
+let previewedEvent = null; // Store the currently previewed event
 
 // ============================================
 // INITIALIZATION
@@ -25,26 +26,19 @@ async function initApp() {
 // ============================================
 
 async function loadEvents() {
-  // First, try to load from localStorage (user-added events)
+  // Load from localStorage only (user-added events)
   const savedEvents = localStorage.getItem('fbi-events');
   if (savedEvents) {
     try {
       allEvents = JSON.parse(savedEvents);
       console.log(`✅ Loaded ${allEvents.length} events from storage`);
-      return;
     } catch (error) {
       console.error('Error parsing saved events:', error);
+      allEvents = [];
     }
-  }
-  
-  // If no saved events, try to load from events.json
-  try {
-    const response = await fetch('events.json');
-    allEvents = await response.json();
-    console.log(`✅ Loaded ${allEvents.length} events from file`);
-  } catch (error) {
-    console.error('❌ Failed to load events:', error);
+  } else {
     allEvents = [];
+    console.log('No saved events found. Start by adding events!');
   }
 }
 
@@ -63,12 +57,146 @@ function setupEventListeners() {
     });
   });
 
-  // Parser form
+  // Parser form - generate preview
   const form = document.getElementById('parser-form');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    handleParse();
+    generatePreview();
   });
+}
+
+// ============================================
+// PREVIEW & ADD EVENT
+// ============================================
+
+function generatePreview() {
+  const announcementText = document.getElementById('announcement-text').value.trim();
+  const posterUrl = document.getElementById('poster-url').value.trim();
+  const discordUrl = document.getElementById('discord-url').value.trim();
+  const dateOverride = document.getElementById('date-override').value.trim();
+  
+  const previewSection = document.getElementById('preview-section');
+  
+  if (!announcementText) {
+    previewSection.innerHTML = `
+      <div class="preview-error">
+        ⚠️ Please paste a Discord announcement to generate a preview.
+      </div>
+    `;
+    previewedEvent = null;
+    return;
+  }
+  
+  try {
+    // Parse the announcement
+    const parsed = parseAnnouncement(announcementText, { dateOverride });
+    
+    // Add optional fields
+    if (posterUrl) parsed.posterUrl = posterUrl;
+    if (discordUrl) parsed.discordUrl = discordUrl;
+    
+    // Validate required fields
+    if (!parsed.title) {
+      throw new Error('Could not detect event title from announcement.');
+    }
+    if (!parsed.date) {
+      throw new Error('Could not detect event date. Please use Date Override field.');
+    }
+    
+    // Store for later
+    previewedEvent = parsed;
+    
+    // Render preview
+    let html = `<div class="preview-card">`;
+    html += `<h4>📋 Event Preview</h4>`;
+    html += `<div class="preview-row"><strong>Title:</strong> ${escapeHtml(parsed.title)}</div>`;
+    html += `<div class="preview-row"><strong>Date:</strong> ${escapeHtml(parsed.date)}</div>`;
+    if (parsed.time) html += `<div class="preview-row"><strong>Time:</strong> ${escapeHtml(parsed.time)}</div>`;
+    if (parsed.status) html += `<div class="preview-row"><strong>Status:</strong> <span class="status-badge ${parsed.status}">${parsed.status.toUpperCase()}</span></div>`;
+    if (parsed.prize) html += `<div class="preview-row"><strong>Prize:</strong> ${escapeHtml(parsed.prize)}</div>`;
+    
+    if (parsed.description) {
+      const shortDesc = parsed.description.length > 150 
+        ? parsed.description.substring(0, 150) + '...' 
+        : parsed.description;
+      html += `<div class="preview-description">${escapeHtml(shortDesc)}</div>`;
+    }
+    
+    html += `</div>`;
+    html += `<button type="button" class="btn-add-event" onclick="addEventToTimeline()">➕ Add Event to Timeline</button>`;
+    
+    previewSection.innerHTML = html;
+    
+  } catch (error) {
+    previewSection.innerHTML = `
+      <div class="preview-error">
+        ❌ Error: ${escapeHtml(error.message)}
+      </div>
+    `;
+    previewedEvent = null;
+  }
+}
+
+function addEventToTimeline() {
+  if (!previewedEvent) {
+    alert('Please generate a preview first.');
+    return;
+  }
+  
+  // Generate unique ID
+  previewedEvent.id = Date.now();
+  
+  // Add to events list
+  allEvents.push(previewedEvent);
+  
+  // Save to localStorage
+  localStorage.setItem('fbi-events', JSON.stringify(allEvents));
+  
+  // Re-render timeline
+  renderTimeline();
+  
+  // Clear form and show success
+  document.getElementById('parser-form').reset();
+  document.getElementById('preview-section').innerHTML = `
+    <div class="preview-success">
+      ✅ Event added to timeline!
+    </div>
+  `;
+  
+  previewedEvent = null;
+  
+  // Clear success message after 3 seconds
+  setTimeout(() => {
+    document.getElementById('preview-section').innerHTML = '';
+  }, 3000);
+}
+
+// ============================================
+// REMOVE EVENT
+// ============================================
+
+function removeEvent(eventId) {
+  if (!confirm('Are you sure you want to remove this event?')) {
+    return;
+  }
+  
+  // Remove from array
+  allEvents = allEvents.filter(e => e.id !== eventId);
+  
+  // Update localStorage
+  localStorage.setItem('fbi-events', JSON.stringify(allEvents));
+  
+  // Re-render timeline
+  renderTimeline();
+  
+  // Clear details panel
+  const panel = document.getElementById('event-details');
+  panel.className = 'event-details-panel';
+  panel.innerHTML = `
+    <div class="empty-state">
+      <p>👉 Click an event card on the timeline to view details.</p>
+    </div>
+  `;
 }
 
 // ============================================
@@ -110,11 +238,13 @@ function renderTimeline() {
     label.textContent = formatDayLabel(day);
     slot.appendChild(label);
     
-    // Event card (if exists)
+    // Event cards (support multiple per day)
     const events = eventsByDate[day];
     if (events && events.length > 0) {
-      const card = createEventCard(events[0]); // Show first event
-      slot.appendChild(card);
+      events.forEach(event => {
+        const card = createEventCard(event);
+        slot.appendChild(card);
+      });
     }
     
     slots.appendChild(slot);
@@ -190,6 +320,9 @@ function showEventDetails(event) {
   if (event.discordUrl) {
     html += `<div class="detail-row"><a href="${escapeHtml(event.discordUrl)}" target="_blank" rel="noopener" style="color: var(--accent-gold); text-decoration: none;">View Discord Post →</a></div>`;
   }
+  
+  // Remove event button
+  html += `<button class="btn-remove-event" onclick="removeEvent(${event.id})">🗑️ Remove This Event</button>`;
   
   panel.innerHTML = html;
 }
