@@ -25,10 +25,23 @@ async function initApp() {
 // ============================================
 
 async function loadEvents() {
+  // First, try to load from localStorage (user-added events)
+  const savedEvents = localStorage.getItem('fbi-events');
+  if (savedEvents) {
+    try {
+      allEvents = JSON.parse(savedEvents);
+      console.log(`✅ Loaded ${allEvents.length} events from storage`);
+      return;
+    } catch (error) {
+      console.error('Error parsing saved events:', error);
+    }
+  }
+  
+  // If no saved events, try to load from events.json
   try {
     const response = await fetch('events.json');
     allEvents = await response.json();
-    console.log(`✅ Loaded ${allEvents.length} events`);
+    console.log(`✅ Loaded ${allEvents.length} events from file`);
   } catch (error) {
     console.error('❌ Failed to load events:', error);
     allEvents = [];
@@ -419,13 +432,14 @@ async function addEventToTimeline() {
   // Add event to the allEvents array
   allEvents.push(window.parsedEvent);
   
-  // Save to events.json
+  // Save to localStorage - this makes it PERMANENT
   try {
-    await saveEventsToFile();
-    alert('✅ Event added and saved successfully!');
+    localStorage.setItem('fbi-events', JSON.stringify(allEvents));
+    alert('✅ Event added and saved permanently!');
   } catch (error) {
-    console.error('Save error:', error);
-    alert('⚠️ Event added to timeline but could not save to file. You may need to copy the JSON manually.');
+    console.error('Storage error:', error);
+    alert('⚠️ Could not save event. Storage may be full.');
+    return;
   }
   
   // Re-render the timeline
@@ -444,16 +458,7 @@ async function addEventToTimeline() {
   window.parsedEvent = null;
 }
 
-async function saveEventsToFile() {
-  const jsonContent = JSON.stringify(allEvents, null, 2);
-  const blob = new Blob([jsonContent], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'events.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
+// Remove the file download function - we don't need it anymore
 
 // ============================================
 // UTILITIES
