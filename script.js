@@ -202,8 +202,12 @@ function removeEvent(eventId) {
   console.log('Current events before removal:', allEvents.length);
   console.log('All event IDs:', allEvents.map(e => ({ id: e.id, type: typeof e.id })));
   
-  // Removed confirmation for now - direct removal
-  console.log('Proceeding with removal...');
+  if (!confirm('Are you sure you want to remove this event?')) {
+    console.log('User cancelled removal');
+    return;
+  }
+  
+  console.log('User confirmed removal, proceeding...');
   
   // Remove from array - ensure type matching
   const beforeLength = allEvents.length;
@@ -362,7 +366,7 @@ function showEventDetails(event) {
   const removeBtn = panel.querySelector('.btn-remove-event');
   console.log('Remove button found:', removeBtn);
   if (removeBtn) {
-    const eventId = parseInt(removeBtn.dataset.eventId);
+    const eventId = removeBtn.dataset.eventId; // Keep as string, don't parse!
     console.log('Attaching remove listener for event ID:', eventId, 'from dataset:', removeBtn.dataset.eventId);
     removeBtn.addEventListener('click', (e) => {
       e.preventDefault();
