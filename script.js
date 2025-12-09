@@ -198,16 +198,21 @@ function addEventToTimeline() {
 // ============================================
 
 function removeEvent(eventId) {
-  console.log('removeEvent called with ID:', eventId);
+  console.log('removeEvent called with ID:', eventId, 'Type:', typeof eventId);
   console.log('Current events before removal:', allEvents.length);
+  console.log('All event IDs:', allEvents.map(e => ({ id: e.id, type: typeof e.id })));
   
   if (!confirm('Are you sure you want to remove this event?')) {
     return;
   }
   
-  // Remove from array
+  // Remove from array - ensure type matching
   const beforeLength = allEvents.length;
-  allEvents = allEvents.filter(e => e.id !== eventId);
+  allEvents = allEvents.filter(e => {
+    const shouldKeep = e.id != eventId; // Use loose comparison to handle type differences
+    console.log(`Event ${e.id} (${typeof e.id}) vs ${eventId} (${typeof eventId}): keep=${shouldKeep}`);
+    return shouldKeep;
+  });
   console.log(`Removed event. Before: ${beforeLength}, After: ${allEvents.length}`);
   
   // Update localStorage
