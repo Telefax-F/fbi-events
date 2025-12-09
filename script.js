@@ -361,13 +361,18 @@ function showEventDetails(event) {
   
   // Attach event listener to remove button
   const removeBtn = panel.querySelector('.btn-remove-event');
+  console.log('Remove button found:', removeBtn);
   if (removeBtn) {
     const eventId = parseInt(removeBtn.dataset.eventId);
-    console.log('Attaching remove listener for event ID:', eventId);
-    removeBtn.addEventListener('click', () => {
-      console.log('Remove button clicked for event ID:', eventId);
+    console.log('Attaching remove listener for event ID:', eventId, 'from dataset:', removeBtn.dataset.eventId);
+    removeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Remove button CLICKED! Event ID:', eventId);
       removeEvent(eventId);
     });
+  } else {
+    console.error('Remove button NOT FOUND in DOM');
   }
 }
 
