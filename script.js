@@ -202,9 +202,8 @@ function removeEvent(eventId) {
   console.log('Current events before removal:', allEvents.length);
   console.log('All event IDs:', allEvents.map(e => ({ id: e.id, type: typeof e.id })));
   
-  if (!confirm('Are you sure you want to remove this event?')) {
-    return;
-  }
+  // Removed confirmation for now - direct removal
+  console.log('Proceeding with removal...');
   
   // Remove from array - ensure type matching
   const beforeLength = allEvents.length;
