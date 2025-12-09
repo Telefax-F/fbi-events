@@ -620,41 +620,6 @@ function copyJSON(button) {
   });
 }
 
-async function addEventToTimeline() {
-  if (!window.parsedEvent) {
-    alert('No event to add!');
-    return;
-  }
-  
-  // Add event to the allEvents array
-  allEvents.push(window.parsedEvent);
-  
-  // Save to localStorage - this makes it PERMANENT
-  try {
-    localStorage.setItem('fbi-events', JSON.stringify(allEvents));
-    alert('✅ Event added and saved permanently!');
-  } catch (error) {
-    console.error('Storage error:', error);
-    alert('⚠️ Could not save event. Storage may be full.');
-    return;
-  }
-  
-  // Re-render the timeline
-  renderTimeline();
-  
-  // Clear the form
-  document.getElementById('announcement-text').value = '';
-  document.getElementById('poster-url').value = '';
-  document.getElementById('discord-url').value = '';
-  document.getElementById('date-override').value = '';
-  
-  // Hide the parse output
-  document.getElementById('parse-output').className = 'parse-output';
-  
-  // Clear stored event
-  window.parsedEvent = null;
-}
-
 // Remove the file download function - we don't need it anymore
 
 // ============================================
