@@ -123,9 +123,15 @@ function generatePreview() {
     }
     
     html += `</div>`;
-    html += `<button type="button" class="btn-add-event" onclick="addEventToTimeline()">➕ Add Event to Timeline</button>`;
+    html += `<button type="button" class="btn-add-event" id="btn-add-event-action">➕ Add Event to Timeline</button>`;
     
     previewSection.innerHTML = html;
+    
+    // Attach event listener to add button
+    const addBtn = document.getElementById('btn-add-event-action');
+    if (addBtn) {
+      addBtn.addEventListener('click', addEventToTimeline);
+    }
     
   } catch (error) {
     previewSection.innerHTML = `
@@ -322,9 +328,18 @@ function showEventDetails(event) {
   }
   
   // Remove event button
-  html += `<button class="btn-remove-event" onclick="removeEvent(${event.id})">🗑️ Remove This Event</button>`;
+  html += `<button class="btn-remove-event" data-event-id="${event.id}">🗑️ Remove This Event</button>`;
   
   panel.innerHTML = html;
+  
+  // Attach event listener to remove button
+  const removeBtn = panel.querySelector('.btn-remove-event');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', () => {
+      const eventId = parseInt(removeBtn.dataset.eventId);
+      removeEvent(eventId);
+    });
+  }
 }
 
 // ============================================
