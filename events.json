@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "2025-12-13-test-event",
+    "title": "Test Event",
+    "date": "2025-12-13",
+    "time": "14:00",
+    "status": "planned",
+    "prize": "50c",
+    "description": "This is a test event to see the timeline",
+    "posterUrl": "https://via.placeholder.com/300x400/d4af37/ffffff?text=Test+Event",
+    "discordUrl": ""
+  },
+  {
+    "id": "2025-12-20-another-test",
+    "title": "Another Test",
+    "date": "2025-12-20",
+    "time": "19:00",
+    "status": "planned",
+    "prize": "100c",
+    "description": "Another test event",
+    "posterUrl": "",
+    "discordUrl": ""
+  }
+]
