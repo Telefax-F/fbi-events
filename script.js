@@ -247,6 +247,17 @@ function handleParse() {
   displayParseResult(event);
 }
 
+function cleanDiscordText(text) {
+  return text
+    .replace(/<a?:[^:]+:\d+>/g, '') // Remove custom Discord emojis
+    .replace(/\*\*(.+?)\*\*/g, '$1') // Remove bold **text**
+    .replace(/__(.+?)__/g, '$1') // Remove underline __text__
+    .replace(/\*(.+?)\*/g, '$1') // Remove italic *text*
+    .replace(/@everyone/g, 'everyone') // Clean @mentions
+    .replace(/@here/g, 'here')
+    .trim();
+}
+
 function parseAnnouncement(raw, opts = {}) {
   const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
   
@@ -262,11 +273,7 @@ function parseAnnouncement(raw, opts = {}) {
   }
   
   // Extract title (first line, clean markdown and emojis)
-  let title = lines[0]
-    .replace(/^\*\*|\*\*$/g, '')
-    .replace(/<:[^:]+:\d+>/g, '')
-    .replace(/<a:[^:]+:\d+>/g, '')
-    .trim();
+  let title = cleanDiscordText(lines[0]);
   
   // Find date & time
   let date = opts.dateOverride || '';
@@ -295,26 +302,46 @@ function parseAnnouncement(raw, opts = {}) {
     }
   }
   
-  // Extract description
-  const description = lines.slice(descStart).join('\n');
+  // Extract description and clean Discord formatting
+  const descriptionRaw = lines.slice(descStart).join('\n');
+  const description = cleanDiscordText(descriptionRaw);
   
-  // Extract prize
+  // Extract prize - look for coin values like 10c, 50c, 100c
   let prize = '';
+  const prizeMatches = [];
+  
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i].toLowerCase();
+    
+    // Look for coin amounts like "50c" or "100c"
+    const coinMatch = lines[i].match(/(\d+)c(?!\w)/gi);
+    if (coinMatch) {
+      prizeMatches.push(...coinMatch);
+    }
+    
+    // Traditional prize detection
     if (l.includes('prize') || l.includes('reward') || l.includes('award winner')) {
       if (l.match(/^prizes?:/)) {
         const colonIdx = lines[i].indexOf(':');
-        prize = lines[i].substring(colonIdx + 1).trim();
-        if (!prize && i + 1 < lines.length) prize = lines[i + 1];
+        const prizeText = lines[i].substring(colonIdx + 1).trim();
+        if (prizeText) prizeMatches.push(prizeText);
+        if (!prizeText && i + 1 < lines.length) {
+          prizeMatches.push(cleanDiscordText(lines[i + 1]));
+        }
       } else if (l.includes('will receive')) {
         const parts = lines[i].split(/will receive/i);
-        prize = parts[1]?.trim() || '';
+        const prizeText = parts[1]?.trim();
+        if (prizeText) prizeMatches.push(cleanDiscordText(prizeText));
       } else if (l.match(/^prizes?$/i) && i + 1 < lines.length) {
-        prize = lines[i + 1];
+        prizeMatches.push(cleanDiscordText(lines[i + 1]));
       }
-      if (prize) break;
     }
+  }
+  
+  // Combine unique prizes
+  if (prizeMatches.length > 0) {
+    const uniquePrizes = [...new Set(prizeMatches)];
+    prize = uniquePrizes.join(' + ');
   }
   
   // Generate ID
@@ -383,7 +410,7 @@ function copyJSON(button) {
   });
 }
 
-function addEventToTimeline() {
+async function addEventToTimeline() {
   if (!window.parsedEvent) {
     alert('No event to add!');
     return;
@@ -392,11 +419,17 @@ function addEventToTimeline() {
   // Add event to the allEvents array
   allEvents.push(window.parsedEvent);
   
+  // Save to events.json
+  try {
+    await saveEventsToFile();
+    alert('✅ Event added and saved successfully!');
+  } catch (error) {
+    console.error('Save error:', error);
+    alert('⚠️ Event added to timeline but could not save to file. You may need to copy the JSON manually.');
+  }
+  
   // Re-render the timeline
   renderTimeline();
-  
-  // Show success message
-  alert('✅ Event added to timeline! Remember to manually add it to events.json and commit to GitHub to make it permanent.');
   
   // Clear the form
   document.getElementById('announcement-text').value = '';
@@ -409,6 +442,17 @@ function addEventToTimeline() {
   
   // Clear stored event
   window.parsedEvent = null;
+}
+
+async function saveEventsToFile() {
+  const jsonContent = JSON.stringify(allEvents, null, 2);
+  const blob = new Blob([jsonContent], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'events.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ============================================
