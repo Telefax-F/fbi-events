@@ -32,6 +32,7 @@ async function loadEvents() {
     try {
       allEvents = JSON.parse(savedEvents);
       console.log(`✅ Loaded ${allEvents.length} events from storage`);
+      console.log('Current events:', allEvents);
     } catch (error) {
       console.error('Error parsing saved events:', error);
       allEvents = [];
@@ -41,6 +42,21 @@ async function loadEvents() {
     console.log('No saved events found. Start by adding events!');
   }
 }
+
+// Helper function to clear all events (available in console)
+window.clearAllEvents = function() {
+  if (confirm('This will delete ALL events. Are you sure?')) {
+    localStorage.removeItem('fbi-events');
+    allEvents = [];
+    renderTimeline();
+    document.getElementById('event-details').innerHTML = `
+      <div class="empty-state">
+        <p>👉 Click an event card on the timeline to view details.</p>
+      </div>
+    `;
+    console.log('✅ All events cleared');
+  }
+};
 
 // ============================================
 // EVENT LISTENERS
@@ -182,15 +198,21 @@ function addEventToTimeline() {
 // ============================================
 
 function removeEvent(eventId) {
+  console.log('removeEvent called with ID:', eventId);
+  console.log('Current events before removal:', allEvents.length);
+  
   if (!confirm('Are you sure you want to remove this event?')) {
     return;
   }
   
   // Remove from array
+  const beforeLength = allEvents.length;
   allEvents = allEvents.filter(e => e.id !== eventId);
+  console.log(`Removed event. Before: ${beforeLength}, After: ${allEvents.length}`);
   
   // Update localStorage
   localStorage.setItem('fbi-events', JSON.stringify(allEvents));
+  console.log('localStorage updated');
   
   // Re-render timeline
   renderTimeline();
@@ -335,8 +357,10 @@ function showEventDetails(event) {
   // Attach event listener to remove button
   const removeBtn = panel.querySelector('.btn-remove-event');
   if (removeBtn) {
+    const eventId = parseInt(removeBtn.dataset.eventId);
+    console.log('Attaching remove listener for event ID:', eventId);
     removeBtn.addEventListener('click', () => {
-      const eventId = parseInt(removeBtn.dataset.eventId);
+      console.log('Remove button clicked for event ID:', eventId);
       removeEvent(eventId);
     });
   }
