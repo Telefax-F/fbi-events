@@ -223,9 +223,9 @@ function formatISO(date) {
 }
 
 function formatDayLabel(isoDate) {
-  const date = new Date(isoDate + 'T12:00:00');
+  const date = new Date(isoDate + 'T12:00:00Z');
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${date.getDate()} ${months[date.getMonth()]}`;
+  return `${date.getUTCDate()} ${months[date.getUTCMonth()]}`;
 }
 
 // ============================================
@@ -352,6 +352,8 @@ function displayParseResult(event) {
       ${event.prize ? `<div class="preview-item"><strong>Prize:</strong> ${escapeHtml(event.prize)}</div>` : ''}
     </div>
     
+    <button class="btn-success" onclick="addEventToTimeline()">✅ Add Event to Timeline</button>
+    
     <div class="json-block">
       <button class="copy-btn" onclick="copyJSON(this)">📋 Copy JSON</button>
       <pre>${JSON.stringify(event, null, 2)}</pre>
@@ -359,6 +361,9 @@ function displayParseResult(event) {
   `;
   
   output.innerHTML = html;
+  
+  // Store the parsed event globally so it can be added
+  window.parsedEvent = event;
 }
 
 function copyJSON(button) {
@@ -376,6 +381,34 @@ function copyJSON(button) {
     console.error('Copy failed:', err);
     alert('Failed to copy. Please copy manually.');
   });
+}
+
+function addEventToTimeline() {
+  if (!window.parsedEvent) {
+    alert('No event to add!');
+    return;
+  }
+  
+  // Add event to the allEvents array
+  allEvents.push(window.parsedEvent);
+  
+  // Re-render the timeline
+  renderTimeline();
+  
+  // Show success message
+  alert('✅ Event added to timeline! Remember to manually add it to events.json and commit to GitHub to make it permanent.');
+  
+  // Clear the form
+  document.getElementById('announcement-text').value = '';
+  document.getElementById('poster-url').value = '';
+  document.getElementById('discord-url').value = '';
+  document.getElementById('date-override').value = '';
+  
+  // Hide the parse output
+  document.getElementById('parse-output').className = 'parse-output';
+  
+  // Clear stored event
+  window.parsedEvent = null;
 }
 
 // ============================================
