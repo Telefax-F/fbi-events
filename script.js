@@ -155,28 +155,40 @@ function createEventCard(event) {
 
 function showEventDetails(event) {
   const panel = document.getElementById('event-details');
-  panel.className = 'event-details-panel';
+  panel.className = 'event-details-panel active';
   
   let html = `<h3>${escapeHtml(event.title)}</h3>`;
   
-  html += `<div class="event-meta">`;
-  if (event.date) html += `<div class="event-meta-item">📅 ${escapeHtml(event.date)}</div>`;
-  if (event.time) html += `<div class="event-meta-item">🕐 ${escapeHtml(event.time)}</div>`;
-  if (event.status) {
-    html += `<div class="event-meta-item"><span class="status-badge ${event.status}">${event.status.toUpperCase()}</span></div>`;
+  // Date, time, status row
+  if (event.date || event.time || event.status) {
+    if (event.date) html += `<div class="detail-row"><strong>📅 Date:</strong> ${escapeHtml(event.date)}</div>`;
+    if (event.time) html += `<div class="detail-row"><strong>🕐 Time:</strong> ${escapeHtml(event.time)}</div>`;
+    if (event.status) {
+      html += `<div class="detail-row"><strong>Status:</strong> <span class="status-badge ${event.status}">${event.status.toUpperCase()}</span></div>`;
+    }
   }
-  html += `</div>`;
   
+  // Prize info
   if (event.prize) {
-    html += `<div class="event-prize"><strong>🏆 Prize:</strong> ${escapeHtml(event.prize)}</div>`;
+    html += `<div class="prize-info">
+      <div class="icon">🏆</div>
+      <div class="text">Prize: ${escapeHtml(event.prize)}</div>
+    </div>`;
   }
   
+  // Description
   if (event.description) {
     html += `<div class="event-description">${escapeHtml(event.description)}</div>`;
   }
   
+  // Poster preview
+  if (event.posterUrl) {
+    html += `<div class="poster-preview"><img src="${escapeHtml(event.posterUrl)}" alt="Event poster"></div>`;
+  }
+  
+  // Discord link
   if (event.discordUrl) {
-    html += `<div class="discord-link"><a href="${escapeHtml(event.discordUrl)}" target="_blank" rel="noopener">View Discord Post →</a></div>`;
+    html += `<div class="detail-row"><a href="${escapeHtml(event.discordUrl)}" target="_blank" rel="noopener" style="color: var(--accent-gold); text-decoration: none;">View Discord Post →</a></div>`;
   }
   
   panel.innerHTML = html;

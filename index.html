@@ -21,23 +21,27 @@
     </nav>
   </header>
 
-  <main class="container">
+  <main class="main-layout">
     
-    <!-- Timeline Section -->
-    <section class="timeline-section">
+    <!-- Left Column: Timeline + Details -->
+    <div class="left-column">
+      
+      <!-- Timeline Strip -->
       <div class="timeline-wrapper" id="timeline">
         <!-- Timeline bar and event cards rendered here by JS -->
       </div>
       
+      <!-- Event Details -->
       <div class="event-details-panel" id="event-details">
         <div class="empty-state">
-          <p>👆 Click an event card to view details</p>
+          <p>👉 Click an event card on the timeline to view details.</p>
         </div>
       </div>
-    </section>
+      
+    </div>
 
-    <!-- Event Parser Section -->
-    <aside class="parser-section">
+    <!-- Right Sidebar: Add Event Form -->
+    <aside class="sidebar">
       <h2>📝 Add New Event</h2>
       <p class="helper-text">Paste your Discord announcement below and click Parse to generate JSON</p>
       
